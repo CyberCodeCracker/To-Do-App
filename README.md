@@ -8,6 +8,6 @@ Edit Tasks: Modify existing tasks to update or change details.
 Delete Tasks: Remove tasks that are no longer needed.
 Mark as Completed: Easily mark tasks as complete to keep track of progress.
 Tech Stack:
-Frontend: Angular, Bootstrap
-Backend: Spring Boot
+Frontend: Angular 17, Bootstrap
+Backend: Spring Boot 3
 Database: PostgreSQL
