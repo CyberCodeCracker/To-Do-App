@@ -1,4 +1,6 @@
 package com.amouri.To_Do.task;
 
-public interface TaskRepository {
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface TaskRepository extends JpaRepository<Task, Integer> {
 }
