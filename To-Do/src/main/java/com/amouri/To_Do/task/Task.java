@@ -23,21 +23,13 @@ public class Task extends BaseEntity {
 
     private String title;
     private String description;
+    private String priority;
+    private LocalDateTime createdAt;
     private LocalDateTime dueAt;
-    private String status;
+    private boolean completed;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
-    public void editTaskDetails(String newTitle, String newDescription, LocalDateTime newDueAt) {
-        if (newTitle != null && newTitle.isEmpty()) {
-            this.title = newTitle;
-        }
-        if (newDescription != null && newDescription.isEmpty()) {
-            this.description = newDescription;
-        }
-        if (newDueAt != null) {
-            this.dueAt = newDueAt;
-        }
-    }
 }

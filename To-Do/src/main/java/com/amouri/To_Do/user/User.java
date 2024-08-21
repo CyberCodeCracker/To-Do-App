@@ -54,10 +54,4 @@ public class User extends BaseEntity implements UserDetails, Principal  {
         tasks.remove(task);
     }
 
-    public void editTask(Integer taskId, String newTitle, String newDescription, LocalDateTime newDueAt) {
-        Task task = tasks.get(taskId);
-        if (task != null) {
-            task.editTaskDetails(newTitle, newDescription, newDueAt);
-        }
-    }
 }
