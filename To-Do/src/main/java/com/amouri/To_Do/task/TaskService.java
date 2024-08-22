@@ -1,4 +1,5 @@
 package com.amouri.To_Do.task;
+import com.amouri.To_Do.common.PageResponse;
 import org.springframework.security.access.AccessDeniedException;
 
 import com.amouri.To_Do.user.User;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -36,54 +38,115 @@ public class TaskService {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new IllegalArgumentException("Task not found"));
         if (!Objects.equals(task.getUser().getId(), connectedUser.getName())) {
-            throw new AccessDeniedException("You don't have permission to update book archived status.");
+            throw new AccessDeniedException("You don't have permission to edit task.");
         }
         if (newTitle != null && newTitle.isEmpty()) {
-            updateTaskTitle(task, newTitle);
+            updateTaskTitle(taskId, newTitle, connectedUser);
         }
         if (newDescription != null && newDescription.isEmpty()) {
-            updateTaskDescription(task, newDescription);
+            updateTaskDescription(taskId, newDescription, connectedUser);
         }
         if (newDueAt != null) {
-            updateTaskDueAt(task, newDueAt);
+            updateTaskDueAt(taskId, newDueAt, connectedUser);
         }
         taskRepository.save(task);
     }
 
-    private void updateTaskDueAt(Task task, LocalDateTime newDueAt) {
+    private void updateTaskDueAt(Integer taskId, LocalDateTime newDueAt,  Authentication connectedUser) {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new IllegalArgumentException("Task not found"));
+        if (!Objects.equals(task.getUser().getId(), connectedUser.getName())) {
+            throw new AccessDeniedException("You don't have permission to update task's due at date.");
+        }
         task.setDueAt(newDueAt);
     }
 
-    private void updateTaskDescription(Task task, String newDescription) {
+    private void updateTaskDescription(Integer taskId, String newDescription, Authentication connectedUser) {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new IllegalArgumentException("Task not found"));
+        if (!Objects.equals(task.getUser().getId(), connectedUser.getName())) {
+            throw new AccessDeniedException("You don't have permission to update task description.");
+        }
         task.setDescription(newDescription);
     }
 
-    private void updateTaskTitle(Task task, String newTitle) {
+    private void updateTaskTitle(Integer taskId, String newTitle, Authentication connectedUser) {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new IllegalArgumentException("Task not found"));
+        if (!Objects.equals(task.getUser().getId(), connectedUser.getName())) {
+            throw new AccessDeniedException("You don't have permission to update task title.");
+        }
         task.setTitle(newTitle);
     }
 
     public void toggleTaskCompletion(Integer taskId, Authentication connectedUser) {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new IllegalArgumentException("Task not found"));
+        if (!Objects.equals(task.getUser().getId(), connectedUser.getName())) {
+            throw new AccessDeniedException("You don't have permission to change task completion status.");
+        }
         task.setCompleted(!task.isCompleted());
         taskRepository.save(task);
     }
 
-    public List<Task> getTasksSortedByDueDate() {
-        return taskRepository.findAll(Sort.by(Sort.Direction.ASC, "dueAt"));
-    }
-
-    public List<Task> findTasksByTitle(String query, int page, int size, String sortBy, boolean ascending) {
-        Pageable pageable = PageRequest.of(page, size, ascending ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending());
-        Page<Task> resultPage = taskRepository.findTasksByTitle( query, query, pageable);
-        return resultPage.getContent();
-    }
-
-    public void setTaskPriority(Integer taskId, String priority) {
+    public void setTaskPriority(Integer taskId, String priority, Authentication connectedUser) {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new IllegalArgumentException("Task not found"));
+        if (!Objects.equals(task.getUser().getId(), connectedUser.getName())) {
+            throw new AccessDeniedException("You don't have permission to set task priority.");
+        }
         task.setPriority(priority);
         taskRepository.save(task);
+    }
+
+    public PageResponse<TaskResponse> getTasksSortedByDueDate(int page, int size, Authentication connectedUser) {
+        User user = ((User) connectedUser.getPrincipal());
+        Pageable pageable = PageRequest.of(page, size, Sort.by("dueAt").descending());
+        Page<Task> taskPage = taskRepository.findByUser(user, pageable);
+        List<TaskResponse> taskResponses = taskPage.stream()
+                .map(task -> new TaskResponse(
+                        task.getId(),
+                        task.getTitle(),
+                        task.getDescription(),
+                        task.getPriority(),
+                        task.getCreatedAt(),
+                        task.getDueAt(),
+                        task.isCompleted()
+                ))
+                .collect(Collectors.toList());
+        return PageResponse.<TaskResponse>builder()
+                .content(taskResponses)
+                .number(taskPage.getNumber())
+                .size(taskPage.getSize())
+                .totalElements(taskPage.getTotalElements())
+                .firstPosition(taskPage.isFirst())
+                .lastPosition(taskPage.isLast())
+                .build();
+    }
+
+    public PageResponse<TaskResponse> findTasksByTitle(int page, int size, Authentication connectedUser) {
+        User user = ((User) connectedUser.getPrincipal());
+        Pageable pageable = PageRequest.of(page, size, Sort.by("title").ascending());
+        Page<Task> taskPage = taskRepository.findTasksByTitle(user, pageable);
+        List<TaskResponse> taskResponses = taskPage.stream()
+                .map(task -> new TaskResponse(
+                        task.getId(),
+                        task.getTitle(),
+                        task.getDescription(),
+                        task.getPriority(),
+                        task.getCreatedAt(),
+                        task.getDueAt(),
+                        task.isCompleted()
+                ))
+                .collect(Collectors.toList());
+        return PageResponse.<TaskResponse>builder()
+                .content(taskResponses)
+                .number(taskPage.getNumber())
+                .size(taskPage.getSize())
+                .totalElements(taskPage.getTotalElements())
+                .firstPosition(taskPage.isFirst())
+                .lastPosition(taskPage.isLast())
+                .build();
     }
 }
 

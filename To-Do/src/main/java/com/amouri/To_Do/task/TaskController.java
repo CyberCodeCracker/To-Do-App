@@ -1,5 +1,6 @@
 package com.amouri.To_Do.task;
 
+import com.amouri.To_Do.common.PageResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -51,4 +52,34 @@ public class TaskController {
         taskService.toggleTaskCompletion(taskId, connectedUser);
         return ResponseEntity.ok().build();
     }
+
+    @PatchMapping("edit-task/priority/{task-id}")
+    public ResponseEntity<Integer> setTaskPriority(
+            @PathVariable("task-id") Integer taskId,
+            @RequestParam(required = false) String priority,
+            Authentication connectedUser
+    ) {
+        taskService.setTaskPriority(taskId, priority, connectedUser);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping
+    public ResponseEntity<PageResponse<TaskResponse>> getTasksSortedByDueDate(
+            @RequestParam(name = "page", defaultValue = "0", required = false) int page,
+            @RequestParam(name = "size", defaultValue = "10", required = false) int size,
+            Authentication connectedUser
+    ) {
+        return ResponseEntity.ok(taskService.getTasksSortedByDueDate(page, size, connectedUser));
+    }
+
+    @GetMapping
+    public ResponseEntity<PageResponse<TaskResponse>> findTasksByTitle(
+            @RequestParam(name = "page", defaultValue = "0", required = false) int page,
+            @RequestParam(name = "size", defaultValue = "5", required = false) int size,
+            Authentication connectedUser
+    ) {
+        return ResponseEntity.ok(taskService.findTasksByTitle(page, size, connectedUser));
+    }
+
+
 }
