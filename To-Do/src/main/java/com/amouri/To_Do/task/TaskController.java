@@ -63,7 +63,7 @@ public class TaskController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping
+    @GetMapping("/sorted-by-due-date")
     public ResponseEntity<PageResponse<TaskResponse>> getTasksSortedByDueDate(
             @RequestParam(name = "page", defaultValue = "0", required = false) int page,
             @RequestParam(name = "size", defaultValue = "10", required = false) int size,
@@ -72,7 +72,7 @@ public class TaskController {
         return ResponseEntity.ok(taskService.getTasksSortedByDueDate(page, size, connectedUser));
     }
 
-    @GetMapping
+    @GetMapping("/sorted-by-title")
     public ResponseEntity<PageResponse<TaskResponse>> findTasksByTitle(
             @RequestParam(name = "page", defaultValue = "0", required = false) int page,
             @RequestParam(name = "size", defaultValue = "5", required = false) int size,
